@@ -10,8 +10,9 @@ permissions:
   pages: write
   id-token: write
 
+# Новый пуш в ту же ветку или PR отменяет устаревший прогон, но разные PR друг другу не мешают.
 concurrency:
-  group: pages
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,6 +40,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    # Деплои на Pages идут строго по очереди и не прерываются на середине.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
