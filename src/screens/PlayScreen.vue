@@ -5,17 +5,12 @@ import SecretCard from '../components/SecretCard.vue'
 import { useGame } from '../composables/useGame'
 
 const game = useGame()
-const { state } = game
+const { state, order } = game
 
 /** board — основной экран; pick/handoff/card — напоминание слова одному игроку. */
 const view = ref<'board' | 'pick' | 'handoff' | 'card'>('board')
 const remindFor = ref<number | null>(null)
 
-const order = computed(() => {
-  const round = state.round
-  if (!round) return []
-  return state.players.map((_, i) => (round.starterIndex + i) % state.players.length)
-})
 
 const remindCard = computed(() => (remindFor.value === null ? null : game.cardOf(remindFor.value)))
 

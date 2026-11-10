@@ -15,9 +15,8 @@ const player = computed(() => game.currentDealPlayer.value)
 const card = computed(() => (player.value === null ? null : game.cardOf(player.value)))
 const isLast = computed(() => state.dealStep === state.players.length - 1)
 const nextName = computed(() => {
-  if (!state.round || isLast.value) return ''
-  const next = (state.round.starterIndex + state.dealStep + 1) % state.players.length
-  return game.playerName(next)
+  const next = game.order.value[state.dealStep + 1]
+  return next === undefined ? '' : game.playerName(next)
 })
 
 watch(
