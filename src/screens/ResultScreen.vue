@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useGame } from '../composables/useGame'
+import type { Outcome } from '../game/types'
+
+type Reason<T extends Outcome['type']> = Extract<Outcome, { type: T; reason: string }>['reason']
 
 const game = useGame()
 const { state } = game
@@ -14,6 +17,17 @@ const accusedName = computed(() =>
   state.accusation?.type === 'player' ? game.playerName(state.accusation.index) : '',
 )
 
+const brehloWinsText = computed<Record<Reason<'brehloWins'>, string>>(() => ({
+  guessedWord: `${brehloName.value} раскусили, но слово угадано.`,
+  wrongAccused: `${accusedName.value} — не брехло. Настоящее брехло — ${brehloName.value}.`,
+  nobodyAccused: `Брехло было: ${brehloName.value}.`,
+}))
+
+const playersWinText = computed<Record<Reason<'playersWin'>, string>>(() => ({
+  caught: `${brehloName.value} так и не угадал(а) слово.`,
+  spottedNoBrehlo: 'Брехла в этом раунде не было — и вы это поняли!',
+}))
+
 const verdict = computed(() => {
   const outcome = state.outcome
   if (!outcome || outcome.type === 'caught') return null
@@ -23,22 +37,14 @@ const verdict = computed(() => {
         tone: 'danger',
         emoji: '🤥',
         title: 'Брехло победило!',
-        text:
-          outcome.reason === 'guessedWord'
-            ? `${brehloName.value} раскусили, но слово угадано.`
-            : outcome.reason === 'wrongAccused'
-              ? `${accusedName.value} — не брехло. Настоящее брехло — ${brehloName.value}.`
-              : `Брехло было: ${brehloName.value}.`,
+        text: brehloWinsText.value[outcome.reason],
       }
     case 'playersWin':
       return {
         tone: 'success',
         emoji: '🎉',
         title: 'Брехло разоблачено!',
-        text:
-          outcome.reason === 'caught'
-            ? `${brehloName.value} так и не угадал(а) слово.`
-            : 'Брехла в этом раунде не было — и вы это поняли!',
+        text: playersWinText.value[outcome.reason],
       }
     case 'everyoneLoses':
       return {
