@@ -43,10 +43,23 @@ function confirmAge() {
   showAgeGate.value = false
 }
 
+/**
+ * Ключи строк игроков. Имена хранятся простым массивом строк, поэтому ключ по индексу
+ * при удалении игрока из середины переносил бы поле ввода (и фокус) на соседа.
+ */
+let nextRowKey = 0
+const rowKeys = ref(state.players.map(() => nextRowKey++))
+
 async function addPlayer() {
   game.addPlayer()
+  if (rowKeys.value.length < state.players.length) rowKeys.value.push(nextRowKey++)
   await nextTick()
   list.value?.querySelector<HTMLInputElement>('li:last-child input')?.focus()
+}
+
+function removePlayer(index: number) {
+  game.removePlayer(index)
+  if (rowKeys.value.length > state.players.length) rowKeys.value.splice(index, 1)
 }
 
 const startHint = computed(() => {
@@ -76,7 +89,7 @@ const startHint = computed(() => {
         </div>
         <p class="muted small players__hint">Впишите по часовой стрелке — в этом порядке пойдёт ход.</p>
         <ol ref="list" class="players">
-          <li v-for="(name, index) in state.players" :key="index" class="players__row">
+          <li v-for="(name, index) in state.players" :key="rowKeys[index]" class="players__row">
             <span class="players__num">{{ index + 1 }}</span>
             <input
               class="players__input"
@@ -93,7 +106,7 @@ const startHint = computed(() => {
               type="button"
               :disabled="state.players.length <= MIN_PLAYERS"
               :aria-label="`Удалить игрока ${index + 1}`"
-              @click="game.removePlayer(index)"
+              @click="removePlayer(index)"
             >
               ✕
             </button>

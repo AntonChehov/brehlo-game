@@ -14,6 +14,8 @@ export default defineConfig({
         name: 'Брехло',
         short_name: 'Брехло',
         description: 'Вечериночная игра на одном телефоне без ведущего',
+        // Позволяет игре через navigator.getInstalledRelatedApps() узнать, установлена ли она.
+        related_applications: [{ platform: 'webapp', url: 'manifest.webmanifest' }],
         lang: 'ru',
         theme_color: '#15121f',
         background_color: '#15121f',

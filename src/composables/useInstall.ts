@@ -7,6 +7,11 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+/** Chromium API: есть ли среди установленных приложений эта PWA (нужен related_applications в манифесте). */
+type NavigatorWithRelatedApps = Navigator & {
+  getInstalledRelatedApps?: () => Promise<Array<{ platform: string }>>
+}
+
 export type InstallPlatform = 'prompt' | 'ios' | 'manual' | 'insecure'
 
 const INSTALLED_KEY = 'brehlo:installed'
@@ -59,6 +64,28 @@ window.addEventListener('appinstalled', () => {
   markInstalled(true)
   deferredPrompt.value = null
 })
+
+const isAndroid = () => /Android/.test(navigator.userAgent)
+
+/**
+ * Сверяет флаг установки с браузером. Положительному ответу верим везде. Пустой ответ надёжен
+ * только в Chrome на Android: там удалённая с телефона игра действительно пропадает из списка,
+ * и кнопка «Установить» возвращается сама. На других платформах API может молчать и про
+ * установленную игру, поэтому там флаг не сбрасываем.
+ */
+async function syncInstalledWithBrowser() {
+  const getApps = (navigator as NavigatorWithRelatedApps).getInstalledRelatedApps
+  if (!getApps) return
+  try {
+    const apps = await getApps.call(navigator)
+    if (apps.some((app) => app.platform === 'webapp')) markInstalled(true)
+    else if (isAndroid()) markInstalled(false)
+  } catch {
+    // API доступен не во всех контекстах (например, во фрейме) — остаёмся на сохранённом флаге.
+  }
+}
+
+void syncInstalledWithBrowser()
 
 // autoUpdate: новая версия service worker сразу берёт управление и перезагружает страницу.
 if (window.isSecureContext && 'serviceWorker' in navigator) registerSW({ immediate: true })

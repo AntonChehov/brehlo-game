@@ -91,6 +91,7 @@ const canStart = computed(
     selectedPacks.value.length > 0,
 )
 
+/** Порядок хода в раунде: по часовой стрелке от первого ходящего. По нему раздаются карточки и идут ассоциации. */
 const order = computed(() => (state.round ? dealOrder(state.round, state.players.length) : []))
 
 /** Игрок, которому сейчас нужно передать телефон. */
@@ -132,6 +133,7 @@ export function useGame() {
     state: readonly(state),
     playerName,
     canStart,
+    order,
     currentDealPlayer,
     cardOf,
     categoryOf,
