@@ -140,6 +140,20 @@ describe('полный раунд', () => {
 describe('настройка', () => {
   beforeEach(() => localStorage.clear())
 
+  it('удаление игрока из середины не сдвигает поля ввода соседей', async () => {
+    save({ players: ['Аня', 'Боря', 'Вика', 'Гоша'] })
+    const wrapper = await mountApp()
+    const before = wrapper.findAll('.players__input').map((input) => input.element)
+
+    await wrapper.findAll('button[aria-label^="Удалить"]')[1]!.trigger('click')
+
+    const after = wrapper.findAll('.players__input')
+    expect(after.map((input) => (input.element as HTMLInputElement).value)).toEqual(['Аня', 'Вика', 'Гоша'])
+    // Поле Вики — тот же DOM-элемент, что и до удаления: фокус и ввод остаются у неё.
+    expect(after[1]!.element).toBe(before[2])
+    wrapper.unmount()
+  })
+
   it('не даёт начать без категорий', async () => {
     const wrapper = await mountApp()
     await button(wrapper, 'Дальше').trigger('click')
