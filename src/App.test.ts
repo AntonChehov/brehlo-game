@@ -14,6 +14,9 @@ const button = (wrapper: VueWrapper, text: string) => {
   return found
 }
 
+const adultPack = (wrapper: VueWrapper) => button(wrapper, '18+')
+const save = (state: object) => localStorage.setItem('brehlo:v1', JSON.stringify(state))
+
 describe('полный раунд', () => {
   beforeEach(() => localStorage.clear())
 
@@ -74,5 +77,82 @@ describe('полный раунд', () => {
     await button(wrapper, 'Игроки').trigger('click')
     expect(wrapper.findAll('.players__input')).toHaveLength(4)
     wrapper.unmount()
+  })
+})
+
+describe('категория 18+', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('включается только после подтверждения возраста', async () => {
+    const wrapper = await mountApp()
+    await button(wrapper, 'Дальше').trigger('click')
+    expect(adultPack(wrapper).attributes('aria-pressed')).toBe('false')
+
+    await adultPack(wrapper).trigger('click')
+    expect(wrapper.text()).toContain('Вам есть 18 лет?')
+    await button(wrapper, 'Нет').trigger('click')
+    expect(wrapper.text()).not.toContain('Вам есть 18 лет?')
+    expect(adultPack(wrapper).attributes('aria-pressed')).toBe('false')
+
+    await adultPack(wrapper).trigger('click')
+    await button(wrapper, 'Да, мне есть 18').trigger('click')
+    expect(adultPack(wrapper).attributes('aria-pressed')).toBe('true')
+
+    // Подтверждение запоминается: повторно возраст не спрашиваем.
+    await adultPack(wrapper).trigger('click')
+    await adultPack(wrapper).trigger('click')
+    expect(wrapper.text()).not.toContain('Вам есть 18 лет?')
+    expect(adultPack(wrapper).attributes('aria-pressed')).toBe('true')
+    wrapper.unmount()
+  })
+})
+
+describe('восстановление сохранённой игры', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('не включает 18+ из сохранения без подтверждённого возраста', async () => {
+    save({ settings: { packIds: ['animals', 'adult'] }, adultConfirmed: false })
+    const wrapper = await mountApp()
+    await button(wrapper, 'Дальше').trigger('click')
+
+    expect(button(wrapper, '18+').attributes('aria-pressed')).toBe('false')
+    expect(button(wrapper, 'Животные').attributes('aria-pressed')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('оставляет 18+, если возраст уже подтверждали', async () => {
+    save({ settings: { packIds: ['adult'] }, adultConfirmed: true })
+    const wrapper = await mountApp()
+    await button(wrapper, 'Дальше').trigger('click')
+
+    expect(button(wrapper, '18+').attributes('aria-pressed')).toBe('true')
+    wrapper.unmount()
+  })
+
+  it('отбрасывает неизвестные категории и открывает настройки, если раунда нет', async () => {
+    save({ screen: 'vote', round: null, players: ['Аня', 'Боря', 'Вика'], settings: { packIds: ['removed-pack', 'memes'] } })
+    const wrapper = await mountApp()
+
+    expect(wrapper.findAll('.players__input').map((input) => (input.element as HTMLInputElement).value)).toEqual([
+      'Аня',
+      'Боря',
+      'Вика',
+    ])
+    await button(wrapper, 'Дальше').trigger('click')
+    expect(wrapper.findAll('.pack--on').map((pack) => pack.find('.pack__title').text())).toEqual(['Мемы'])
+    wrapper.unmount()
+  })
+
+  it('продолжает начатый раунд после перезагрузки', async () => {
+    const wrapper = await mountApp()
+    await button(wrapper, 'Дальше').trigger('click')
+    await button(wrapper, 'Начать игру').trigger('click')
+    const firstPlayer = wrapper.find('.big-name').text()
+    wrapper.unmount()
+
+    const restored = await mountApp()
+    expect(restored.find('.big-name').text()).toBe(firstPlayer)
+    expect(restored.text()).toContain('карточка 1 из 4')
+    restored.unmount()
   })
 })
