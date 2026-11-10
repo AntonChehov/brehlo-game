@@ -1,10 +1,20 @@
 # Брехло
 
+[![CI / Deploy](https://github.com/AntonChehov/brehlo-game/actions/workflows/deploy.yml/badge.svg)](https://github.com/AntonChehov/brehlo-game/actions/workflows/deploy.yml)
+
 Вечериночная игра для компании на **одном телефоне** — без ведущего.
+
+**▶ Играть: [antonchehov.github.io/brehlo-game](https://antonchehov.github.io/brehlo-game/)** — откройте на телефоне и установите на главный экран, дальше игра работает без интернета.
 
 У всех игроков одно и то же слово, а у одного вместо слова — **«БРЕХЛО»**. По кругу каждый называет ассоциацию: понятную своим, но бесполезную для брехла. Брехло делает вид, что всё знает. Потом голосуете: кто врёт?
 
 Игра родилась, когда нас было слишком мало, чтобы кто-то один сидел ведущим и не играл. Теперь ведущий — телефон.
+
+| Игроки | Категории | Карточка брехла |
+|---|---|---|
+| <img src="docs/screenshots/01-players.webp" width="240" alt="Список игроков"> | <img src="docs/screenshots/02-categories.webp" width="240" alt="Выбор категорий"> | <img src="docs/screenshots/03-card-brehlo.webp" width="240" alt="Карточка «БРЕХЛО» с подсказкой категории"> |
+| **Карточка со словом** | **Ход по кругу** | **Итог раунда** |
+| <img src="docs/screenshots/04-card-word.webp" width="240" alt="Карточка со словом"> | <img src="docs/screenshots/05-play.webp" width="240" alt="Порядок ассоциаций"> | <img src="docs/screenshots/07-result.webp" width="240" alt="Брехло разоблачено"> |
 
 ## Возможности
 
@@ -36,7 +46,7 @@ pnpm build      # проверка типов + production-сборка
 pnpm icons      # перегенерировать иконки PWA из public/favicon.svg
 ```
 
-**Стек:** Vue 3 (Composition API, `<script setup>`), TypeScript strict, Vite, vite-plugin-pwa, Vitest + Vue Test Utils. Без UI-библиотек и стейт-менеджеров: ~39 КБ JS в gzip.
+**Стек:** Vue 3 (Composition API, `<script setup>`), TypeScript strict, Vite, vite-plugin-pwa, Vitest + Vue Test Utils, oxlint. CI на GitHub Actions: линтер, тесты и сборка на каждый PR, деплой на GitHub Pages из `main`. Без UI-библиотек и стейт-менеджеров: ~42 КБ JS в gzip.
 
 ### Архитектура
 
