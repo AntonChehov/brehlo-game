@@ -64,11 +64,11 @@ watch(showHelp, (open) => {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
 }
 
 .install__btn {
-  min-height: 44px;
+  min-height: 40px;
+  padding: 0 16px;
   font-size: 0.95rem;
 }
 

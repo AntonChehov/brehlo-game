@@ -19,7 +19,7 @@ const model = defineModel<boolean>({ required: true })
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 0;
+  padding: 10px 0;
   cursor: pointer;
 }
 

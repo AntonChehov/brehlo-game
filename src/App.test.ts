@@ -22,6 +22,7 @@ describe('полный раунд', () => {
     const inputs = wrapper.findAll('.players__input')
     for (const [i, name] of ['Аня', 'Боря', 'Вика'].entries()) await inputs[i]!.setValue(name)
     await wrapper.findAll('button[aria-label^="Удалить"]')[3]!.trigger('click')
+    await button(wrapper, 'Дальше').trigger('click')
     await button(wrapper, 'Начать игру').trigger('click')
 
     const cards = new Map<string, string>()
@@ -65,9 +66,13 @@ describe('полный раунд', () => {
 
   it('не даёт начать без категорий', async () => {
     const wrapper = await mountApp()
+    await button(wrapper, 'Дальше').trigger('click')
     for (const pack of wrapper.findAll('.pack--on')) await pack.trigger('click')
     expect(button(wrapper, 'Начать игру').attributes('disabled')).toBeDefined()
     expect(wrapper.text()).toContain('Выберите хотя бы одну категорию')
+
+    await button(wrapper, 'Игроки').trigger('click')
+    expect(wrapper.findAll('.players__input')).toHaveLength(4)
     wrapper.unmount()
   })
 })
