@@ -133,6 +133,21 @@ input {
   gap: 20px;
 }
 
+/* Экран ровно по высоте окна: прокручивается не страница, а только тело экрана, если не влезло. */
+#app:has(.screen--fit) {
+  height: 100dvh;
+}
+
+.screen--fit {
+  min-height: 0;
+  gap: 14px;
+}
+
+.screen--fit .screen__body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .screen__centered {
   flex: 1;
   display: flex;

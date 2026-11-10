@@ -12,6 +12,8 @@ import type { WordPack } from '../game/types'
 const game = useGame()
 const { state } = game
 
+/** Настройка разбита на два шага, чтобы каждый помещался на экран телефона без прокрутки. */
+const step = ref<'players' | 'options'>('players')
 const showAgeGate = ref(false)
 const showRules = ref(false)
 const list = ref<HTMLOListElement>()
@@ -54,23 +56,25 @@ const startHint = computed(() => {
 </script>
 
 <template>
-  <section class="screen">
+  <section v-if="step === 'players'" class="screen screen--fit">
     <header class="hero">
       <h1 class="hero__title">Брехло</h1>
-      <p class="muted">Игра для компании на одном телефоне — без ведущего</p>
-      <button class="btn btn--ghost hero__rules" type="button" @click="showRules = true">
-        Как играть?
-      </button>
-      <InstallButton />
+      <p class="muted small hero__subtitle">Игра для компании на одном телефоне без ведущего</p>
+      <div class="hero__links">
+        <button class="btn btn--ghost hero__rules" type="button" @click="showRules = true">
+          Как играть?
+        </button>
+        <InstallButton />
+      </div>
     </header>
 
     <div class="screen__body">
-      <section class="card">
+      <section class="card players-card">
         <div class="section-head">
           <h2>Игроки</h2>
           <span class="muted">{{ state.players.length }} / {{ MAX_PLAYERS }}</span>
         </div>
-        <p class="muted small">Впишите по кругу, по часовой стрелке — в этом порядке будет идти ход.</p>
+        <p class="muted small players__hint">Впишите по часовой стрелке — в этом порядке пойдёт ход.</p>
         <ol ref="list" class="players">
           <li v-for="(name, index) in state.players" :key="index" class="players__row">
             <span class="players__num">{{ index + 1 }}</span>
@@ -96,7 +100,7 @@ const startHint = computed(() => {
           </li>
         </ol>
         <button
-          class="btn btn--block"
+          class="btn btn--block players__add"
           type="button"
           :disabled="state.players.length >= MAX_PLAYERS"
           @click="addPlayer"
@@ -104,12 +108,23 @@ const startHint = computed(() => {
           + Добавить игрока
         </button>
       </section>
+    </div>
 
-      <section class="card">
-        <div class="section-head">
-          <h2>Категории</h2>
-          <span class="muted">можно несколько</span>
-        </div>
+    <div class="screen__actions">
+      <button class="btn btn--primary btn--block" type="button" @click="step = 'options'">
+        Дальше — категории
+      </button>
+    </div>
+  </section>
+
+  <section v-else class="screen screen--fit">
+    <header class="step-head">
+      <button class="btn btn--ghost step-head__back" type="button" @click="step = 'players'">← Игроки</button>
+      <h2 class="step-head__title">Категории</h2>
+    </header>
+
+    <div class="screen__body">
+      <section>
         <div class="packs" role="group" aria-label="Категории слов">
           <button
             v-for="pack in PACKS"
@@ -121,68 +136,97 @@ const startHint = computed(() => {
             @click="onPackClick(pack)"
           >
             <span class="pack__emoji" aria-hidden="true">{{ pack.emoji }}</span>
-            <span class="pack__title">{{ pack.title }}</span>
-            <span class="pack__count">{{ pack.words.length }} слов</span>
+            <span class="pack__text">
+              <span class="pack__title">{{ pack.title }}</span>
+              <span class="pack__count">{{ pack.words.length }} слов</span>
+            </span>
           </button>
         </div>
       </section>
 
-      <section class="card">
+      <section class="card options">
         <ToggleRow
           v-model="hint"
           label="Подсказка для брехла"
-          hint="Брехло видит категорию загаданного слова"
+          hint="Брехло видит категорию слова"
         />
         <ToggleRow
           v-model="surprises"
           label="Раунды-сюрпризы"
-          hint="Изредка брехла нет вовсе — или брехло все"
+          hint="Иногда брехла нет — или брехло все"
         />
       </section>
     </div>
 
-    <div class="screen__actions sticky">
+    <div class="screen__actions">
       <p v-if="startHint" class="muted small center">{{ startHint }}</p>
       <button class="btn btn--primary btn--block" type="button" :disabled="!game.canStart.value" @click="game.startGame">
         Начать игру
       </button>
     </div>
-
-    <BaseDialog
-      v-if="showAgeGate"
-      title="Вам есть 18 лет?"
-      confirm-label="Да, мне есть 18"
-      cancel-label="Нет"
-      @confirm="confirmAge"
-      @cancel="showAgeGate = false"
-    >
-      Категория «18+» содержит слова на темы алкоголя, свиданий и интима. Выбирайте её, только если всем
-      игрокам есть 18.
-    </BaseDialog>
-
-    <RulesDialog v-if="showRules" @close="showRules = false" />
   </section>
+
+  <BaseDialog
+    v-if="showAgeGate"
+    title="Вам есть 18 лет?"
+    confirm-label="Да, мне есть 18"
+    cancel-label="Нет"
+    @confirm="confirmAge"
+    @cancel="showAgeGate = false"
+  >
+    Категория «18+» содержит слова на темы алкоголя, свиданий и интима. Выбирайте её, только если всем
+    игрокам есть 18.
+  </BaseDialog>
+
+  <RulesDialog v-if="showRules" @close="showRules = false" />
 </template>
 
 <style scoped>
 .hero {
   text-align: center;
-  padding-top: 12px;
 }
 
 .hero__title {
-  font-size: 3rem;
+  font-size: 2.2rem;
   font-weight: 900;
   letter-spacing: -0.02em;
   color: var(--accent);
 }
 
+.hero__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 4px;
+}
+
 .hero__rules {
   min-height: 40px;
-  margin-top: 4px;
+  padding: 0 12px;
+  font-size: 0.95rem;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+
+.step-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.step-head__back {
+  justify-self: start;
+  min-height: 40px;
+  padding: 0 8px;
+  font-size: 0.95rem;
+}
+
+.step-head__title {
+  font-size: 1.2rem;
+}
+
 
 .section-head {
   display: flex;
@@ -203,13 +247,22 @@ const startHint = computed(() => {
   text-align: center;
 }
 
-.players {
-  list-style: none;
-  padding: 0;
-  margin: 12px 0;
+/* Карточка сжимается под экран: при большом числе игроков прокручивается только список. */
+.players-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  min-height: 0;
+}
+
+.players {
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .players__row {
@@ -228,7 +281,7 @@ const startHint = computed(() => {
 .players__input {
   flex: 1;
   min-width: 0;
-  height: 48px;
+  height: 44px;
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -241,22 +294,31 @@ const startHint = computed(() => {
   opacity: 0.7;
 }
 
+.players__add {
+  flex-shrink: 0;
+  min-height: 44px;
+  font-size: 1rem;
+}
+
+.section-head + .small {
+  margin-top: -4px;
+}
+
 .packs {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 12px;
 }
 
 .pack {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 12px;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px 10px;
   border: 2px solid var(--border);
   border-radius: 14px;
-  background: var(--bg);
+  background: var(--surface);
   text-align: left;
   cursor: pointer;
   transition:
@@ -266,15 +328,25 @@ const startHint = computed(() => {
 
 .pack--on {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
 }
 
 .pack__emoji {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.pack__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .pack__title {
+  overflow-wrap: break-word;
   font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
 }
 
 .pack__count {
@@ -282,10 +354,44 @@ const startHint = computed(() => {
   font-size: 0.8rem;
 }
 
-.sticky {
-  position: sticky;
-  bottom: 0;
-  padding: 12px 0 max(4px, env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--bg) 70%, transparent);
+.options {
+  padding-block: 2px;
+}
+
+/* Узкие телефоны (320 px): уменьшаем плитки, чтобы названия не переносились посреди слова. */
+@media (max-width: 340px) {
+  .pack {
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .pack__emoji {
+    font-size: 1.2rem;
+  }
+
+  .pack__title {
+    font-size: 0.85rem;
+  }
+}
+
+/* Невысокие экраны (браузер с панелями на обычном телефоне): ужимаем отступы. */
+@media (max-height: 700px) {
+  .screen--fit,
+  .screen__body {
+    gap: 12px;
+  }
+}
+
+/* Совсем низкие (iPhone SE в браузере, альбомная ориентация): убираем второстепенный текст. */
+@media (max-height: 600px) {
+  .hero__subtitle,
+  .players__hint,
+  .options :deep(.toggle__hint) {
+    display: none;
+  }
+
+  .hero__title {
+    font-size: 1.9rem;
+  }
 }
 </style>
