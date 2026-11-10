@@ -37,6 +37,15 @@ body {
   overscroll-behavior: none;
 }
 
+/* Если где-то понадобится прокрутка, она работает, но полосы прокрутки не видно. */
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
 #app {
   max-width: 480px;
   min-height: 100dvh;

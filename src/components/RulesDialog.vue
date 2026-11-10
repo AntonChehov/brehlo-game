@@ -52,12 +52,6 @@ onMounted(() => {
   color: var(--text);
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* Прокрутка остаётся на маленьких экранах, но без полосы прокрутки. */
-  scrollbar-width: none;
-}
-
-.rules::-webkit-scrollbar {
-  display: none;
 }
 
 .rules::backdrop {
