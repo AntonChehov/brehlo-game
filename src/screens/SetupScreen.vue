@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import BaseDialog from '../components/BaseDialog.vue'
+import InstallButton from '../components/InstallButton.vue'
 import RulesDialog from '../components/RulesDialog.vue'
 import ToggleRow from '../components/ToggleRow.vue'
 import { useGame } from '../composables/useGame'
@@ -60,6 +61,7 @@ const startHint = computed(() => {
       <button class="btn btn--ghost hero__rules" type="button" @click="showRules = true">
         Как играть?
       </button>
+      <InstallButton />
     </header>
 
     <div class="screen__body">
